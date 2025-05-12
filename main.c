@@ -54,19 +54,20 @@ int main() {
 	}
 
             else if (strstr(current, "||")) {
-                char *left = strtok(current, "||");
-                char *right = strtok(NULL, "");
+		char *op = strstr(current, "||");
+		if (op) {
+    		*op = '\0';
+    		char *left = current;
+    		char *right = op + 2;
 
-                while (*left == ' ') left++;
-                last_status = single_command(left);
+    		while (*left == ' ') left++;
+    		while (*right == ' ') right++;
 
-                if (last_status != 0 && right) {
-                    while (*right == ' ') right++;
-                    last_status = single_command(right);
-                }
-            }
-
-            else {
+    		last_status = single_command(left);
+    		if (last_status != 0 && right)
+        		last_status = single_command(right);
+		}
+	}  else {
                 while (*current == ' ') current++;
                 last_status = single_command(current);
             }
@@ -170,7 +171,8 @@ void pipeline(char *cmdline) {
             perror("exec error");
             exit(1);
         } else {
-            wait(NULL);
+            int status;
+	    waitpid(pid, &status, 0);
             close(pipefd[1]);
             if (prev_fd != -1) close(prev_fd);
             prev_fd = pipefd[0];
